@@ -49,98 +49,55 @@
       </div>
     </div>
 
-    <!-- Immutable Passport SDK (sem espaços, com cache-busting) -->
-    <script src="https://cdn.jsdelivr.net/npm/@imtbl/passport-sdk@latest/dist/index.umd.js?v=2"></script>
+    <!-- Carrega o SDK da Immutable dinamicamente -->
     <script>
-      let userAddress = null;
-      let passportInitialized = false;
+      // Função para carregar o SDK
+      function loadImmutableSDK() {
+        return new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.jsdelivr.net/npm/@imtbl/passport-sdk@latest/dist/index.umd.js';
+          script.onload = () => resolve(window.imx);
+          script.onerror = () => reject(new Error('Falha ao carregar o SDK da Immutable'));
+          document.head.appendChild(script);
+        });
+      }
 
-      // Função global para conectar carteira
-      window.connectWallet = async function() {
-        if (!passportInitialized) {
-          alert("A carteira ainda está a carregar. Tente novamente em 2 segundos.");
-          return;
-        }
-
+      // Inicializa a carteira quando o DOM estiver pronto
+      document.addEventListener('DOMContentLoaded', async () => {
         try {
-          const passport = window.immutablePassport;
-          const user = await passport.login();
-          userAddress = user.address;
-          document.getElementById("walletButton").innerText = "Conectado";
-          document.getElementById("walletButton").disabled = true;
-          console.log("Carteira conectada:", userAddress);
-        } catch (error) {
-          console.error("Erro ao conectar carteira:", error);
-          alert("Falha ao conectar carteira. Verifique a consola (F12).");
-        }
-      };
-
-      // Função para mintar NFT
-      window.mintCreatureNFT = async function(name) {
-        if (!userAddress) {
-          alert("Conecta a carteira primeiro!");
-          return;
-        }
-
-        try {
-          const response = await fetch('https://api.immutable.com/v2/mints', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contract_address: "0x5FdC34d8F063A3A61a86A04E1313d90736152751",
-              blueprint_id: "1",
-              receiver: userAddress,
-              metadata: {
-                name: name,
-                description: "Criatura mística do CrystalRealm",
-                image: "https://crystalrealm-maker.github.io/crystal-realm/creature-placeholder.png"
-              }
-            })
-          });
-
-          if (response.ok) {
-            alert(`✅ ${name} mintado com sucesso!`);
-          } else {
-            const error = await response.text();
-            console.error("Erro na API:", error);
-            alert("Falha ao mintar NFT.");
-          }
-        } catch (error) {
-          console.error("Erro ao mintar NFT:", error);
-          alert("Erro de rede ao mintar NFT.");
-        }
-      };
-
-      // Inicializa a carteira assim que o SDK carregar
-      function initPassport() {
-        if (typeof imx === 'undefined') {
-          console.error("❌ Immutable SDK não carregou");
-          document.getElementById("walletButton").innerText = "Carteira indisponível";
-          document.getElementById("walletButton").disabled = true;
-          return;
-        }
-
-        try {
-          window.immutablePassport = new imx.Passport({
+          const imx = await loadImmutableSDK();
+          const passport = new imx.Passport({
             clientId: "yPpJeP3BG2vXZZNjVB8mmEKn1X6lVdoS",
             redirectUri: "https://crystalrealm-maker.github.io/crystal-realm/",
             logoutRedirectUri: "https://crystalrealm-maker.github.io/crystal-realm/",
             audience: "platform_api",
             scope: "openid offline_access email transact"
           });
-          passportInitialized = true;
-          console.log("✅ Immutable SDK carregado com sucesso");
-        } catch (e) {
-          console.error("Erro ao inicializar a carteira:", e);
-          document.getElementById("walletButton").innerText = "Erro na carteira";
+
+          window.connectWallet = async function() {
+            try {
+              const user = await passport.login();
+              document.getElementById("walletButton").innerText = "Conectado";
+              document.getElementById("walletButton").disabled = true;
+              console.log("Carteira conectada:", user.address);
+            } catch (error) {
+              console.error("Erro ao conectar carteira:", error);
+              alert("Falha ao conectar carteira.");
+            }
+          };
+
+          window.mintCreatureNFT = async function(name) {
+            if (!passport.isConnected()) {
+              alert("Conecta a carteira primeiro!");
+              return;
+            }
+            alert(`Mintando: ${name}`);
+          };
+        } catch (error) {
+          console.error("Falha ao carregar o SDK da Immutable:", error);
+          document.getElementById("walletButton").innerText = "Carteira indisponível";
           document.getElementById("walletButton").disabled = true;
         }
-      }
-
-      // Tenta inicializar a carteira quando o DOM estiver pronto
-      document.addEventListener('DOMContentLoaded', () => {
-        // Espera um pouco para garantir que o SDK carrega
-        setTimeout(initPassport, 1000);
       });
     </script>
 
