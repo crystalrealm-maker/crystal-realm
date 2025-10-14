@@ -53,11 +53,19 @@
       </div>
     </div>
 
-    <!-- Immutable Passport SDK (CORRIGIDO) -->
+    <!-- Immutable Passport SDK (SEM ERROS) -->
     <script src="https://unpkg.com/@imtbl/passport-sdk@latest/dist/index.umd.js"></script>
     <script>
-      // Garante que o DOM está carregado antes de inicializar a carteira
+      // Garante que o DOM está pronto antes de usar imx
       document.addEventListener('DOMContentLoaded', () => {
+        // Verifica se o SDK foi carregado
+        if (typeof imx === 'undefined') {
+          console.error("Immutable SDK não carregou");
+          document.getElementById("walletButton").innerText = "Carteira indisponível";
+          document.getElementById("walletButton").disabled = true;
+          return;
+        }
+
         const passport = new imx.Passport({
           clientId: "yPpJeP3BG2vXZZNjVB8mmEKn1X6lVdoS",
           redirectUri: "https://crystalrealm-maker.github.io/crystal-realm/",
@@ -72,8 +80,8 @@
             document.getElementById("walletButton").innerText = "Conectado";
             document.getElementById("walletButton").disabled = true;
           } catch (error) {
-            console.error("Erro:", error);
-            alert("Falha ao conectar carteira.");
+            console.error("Erro ao conectar carteira:", error);
+            alert("Falha ao conectar carteira. Verifica a consola (F12).");
           }
         };
 
