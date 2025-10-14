@@ -54,36 +54,38 @@
     </div>
 
     <!-- Immutable Passport SDK (CORRIGIDO) -->
-<script src="https://unpkg.com/@imtbl/passport-sdk@latest/dist/index.umd.js"></script>
-<script>
-  // Configuração da Immutable Wallet
-  const passport = new imx.Passport({
-    clientId: "yPpJeP3BG2vXZZNjVB8mmEKn1X6lVdoS",
-    redirectUri: "https://crystalrealm-maker.github.io/crystal-realm/",
-    logoutRedirectUri: "https://crystalrealm-maker.github.io/crystal-realm/",
-    audience: "platform_api",
-    scope: "openid offline_access email transact"
-  });
+    <script src="https://unpkg.com/@imtbl/passport-sdk@latest/dist/index.umd.js"></script>
+    <script>
+      // Garante que o DOM está carregado antes de inicializar a carteira
+      document.addEventListener('DOMContentLoaded', () => {
+        const passport = new imx.Passport({
+          clientId: "yPpJeP3BG2vXZZNjVB8mmEKn1X6lVdoS",
+          redirectUri: "https://crystalrealm-maker.github.io/crystal-realm/",
+          logoutRedirectUri: "https://crystalrealm-maker.github.io/crystal-realm/",
+          audience: "platform_api",
+          scope: "openid offline_access email transact"
+        });
 
-  async function connectWallet() {
-    try {
-      const user = await passport.login();
-      document.getElementById("walletButton").innerText = "Conectado";
-      document.getElementById("walletButton").disabled = true;
-    } catch (error) {
-      console.error("Erro:", error);
-      alert("Falha ao conectar carteira.");
-    }
-  }
+        window.connectWallet = async function() {
+          try {
+            const user = await passport.login();
+            document.getElementById("walletButton").innerText = "Conectado";
+            document.getElementById("walletButton").disabled = true;
+          } catch (error) {
+            console.error("Erro:", error);
+            alert("Falha ao conectar carteira.");
+          }
+        };
 
-  window.mintCreatureNFT = async function(name) {
-    if (!passport.isConnected()) {
-      alert("Conecta a carteira primeiro!");
-      return;
-    }
-    alert(`Mintando: ${name}`);
-  };
-</script>
+        window.mintCreatureNFT = async function(name) {
+          if (!passport.isConnected()) {
+            alert("Conecta a carteira primeiro!");
+            return;
+          }
+          alert(`Mintando: ${name}`);
+        };
+      });
+    </script>
 
     <!-- Código original do Unity (INALTERADO) -->
     <script>
