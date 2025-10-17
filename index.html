@@ -49,45 +49,43 @@
       </div>
     </div>
 
-    <!-- Immutable Passport SDK (SEM ESPAÇOS) -->
-    <script src="https://unpkg.com/@imtbl/passport-sdk@latest/dist/index.umd.js"></script>
+    <!-- Web3.js (para conectar à MetaMask) -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
     <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        if (typeof imx === 'undefined') {
-          console.error("❌ Immutable SDK não carregou");
-          document.getElementById("walletButton").innerText = "Carteira indisponível";
-          document.getElementById("walletButton").disabled = true;
-          return;
-        }
+      let web3 = null;
+      let userAddress = null;
 
-        const passport = new imx.Passport({
-          clientId: "yPpJeP3BG2vXZZNjVB8mmEKn1X6lVdoS",
-          redirectUri: "https://crystalrealm-maker.github.io/crystal-realm/",
-          logoutRedirectUri: "https://crystalrealm-maker.github.io/crystal-realm/",
-          audience: "platform_api",
-          scope: "openid offline_access email transact"
-        });
-
-        window.connectWallet = async function() {
+      // Função para conectar à MetaMask
+      window.connectWallet = async function() {
+        if (window.ethereum) {
           try {
-            const user = await passport.login();
-            document.getElementById("walletButton").innerText = "Conectado";
+            // Pedir permissão para aceder à conta
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            userAddress = accounts[0];
+            web3 = new Web3(window.ethereum);
+
+            // Atualizar botão
+            document.getElementById("walletButton").innerText = `Conectado: ${userAddress.substring(0, 6)}...${userAddress.substring(38)}`;
             document.getElementById("walletButton").disabled = true;
-            console.log("Carteira conectada:", user.address);
+
+            console.log("✅ Carteira conectada:", userAddress);
           } catch (error) {
-            console.error("Erro ao conectar carteira:", error);
+            console.error("❌ Erro ao conectar carteira:", error);
             alert("Falha ao conectar carteira.");
           }
-        };
+        } else {
+          alert("MetaMask não detetada. Instala a extensão MetaMask no teu navegador.");
+        }
+      };
 
-        window.mintCreatureNFT = async function(name) {
-          if (!passport.isConnected()) {
-            alert("Conecta a carteira primeiro!");
-            return;
-          }
-          alert(`Mintando: ${name}`);
-        };
-      });
+      // Função para mintar NFT (será chamada pelo Unity)
+      window.mintCreatureNFT = async function(name) {
+        if (!userAddress) {
+          alert("Conecta a carteira primeiro!");
+          return;
+        }
+        alert(`Mintando: ${name} para a conta: ${userAddress}`);
+      };
     </script>
 
     <!-- Código original do Unity (INALTERADO) -->
