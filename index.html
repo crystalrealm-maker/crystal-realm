@@ -79,13 +79,43 @@
       };
 
       // Função para mintar NFT (será chamada pelo Unity)
-      window.mintCreatureNFT = async function(name) {
-        if (!userAddress) {
-          alert("Conecta a carteira primeiro!");
-          return;
+window.mintCreatureNFT = async function(name) {
+  if (!userAddress) {
+    alert("Conecta a carteira primeiro!");
+    return;
+  }
+
+  try {
+    const response = await fetch('https://api.opensea.io/v2/mints', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': '89c779f1001b451ea4b837e9b969ab28' // ← A tua API Key da OpenSea
+      },
+      body: JSON.stringify({
+        contract_address: "0x6C9FAD414Ea13831d055A97209A13D37D4E69F84", // ← Endereço do contrato
+        blueprint_id: "1", // ← ID da criatura (podes mudar depois)
+        receiver: userAddress, // ← Conta do jogador
+        meta: {
+          name: name,
+          description: "Criatura mística do CrystalRealm",
+          image: "https://crystalrealm-maker.github.io/crystal-realm/creature-placeholder.png" // ← Imagem da criatura
         }
-        alert(`Mintando: ${name} para a conta: ${userAddress}`);
-      };
+      })
+    });
+
+    if (response.ok) {
+      alert(`✅ ${name} mintado com sucesso!`);
+    } else {
+      const error = await response.text();
+      console.error("Erro na API:", error);
+      alert("Falha ao mintar NFT.");
+    }
+  } catch (error) {
+    console.error("Erro ao mintar NFT:", error);
+    alert("Erro de rede ao mintar NFT.");
+  }
+};
     </script>
 
     <!-- Código original do Unity (INALTERADO) -->
